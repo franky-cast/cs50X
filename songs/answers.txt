@@ -1,8 +1,0 @@
-If songs.db contains the top 100 songs of one listener from 2018, audio aura could be characterized by representing
-the average of the genres with different colors.
-
-Although this could be one method of characterizing the aura, it might not be accurately representative of the listener
-due to chance. Perhaps the user was using his spotify to DJ for others and was not listening to those songs by himself.
-
-Better ways of calculating this aura would be to analyze the time spent listening to each genre and how many times the
-songs were listened to.
