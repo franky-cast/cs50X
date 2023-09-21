@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="header">
+        <h1>Trivia!</h1>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>Part 1: Multiple Choice </h2>
+            <hr>
+            <h3>What is the largest planet in our solar system? </h3>
+            <p class="answer-status-el"></p>
+            <form>
+                <button class="button-el"><input class="input-el" type="submit" value="Earth"></button>
+                <button class="button-el"><input class="input-el" type="submit" value="Mars"></button>
+                <button class="button-el"><input class="input-el" type="submit" value="Jupiter"></button>
+                <button class="button-el"><input class="input-el" type="submit" value="Venus"></button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Part 2: Free Response</h2>
+            <hr>
+            <h3>What is the name of the famous detective who lives at 221B Baker Street in London? </h3>
+            <p class="open-question-status-el"></p>
+            <form>
+                <input autocomplete="off" autofocus placeholder="answer" id="open-question-input-el" type="text">
+                <button id="check-button-el">Check Answer</button>
+            </form>
+        </div>
+        <script src="script.js"></script>
+    </div>
+</body>
+</html>
