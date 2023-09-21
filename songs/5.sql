@@ -1,1 +1,0 @@
-SELECT AVG(energy) as averageEnergy FROM songs;
