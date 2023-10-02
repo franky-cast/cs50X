@@ -7,6 +7,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required, lookup, usd
 
+from datetime import date
+
 # Configure application
 app = Flask(__name__)
 
@@ -42,7 +44,58 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        # Ensure symbol input
+        if not symbol:
+            return apology("Must provide symbol", 403)
+
+        # Ensure symbol exists
+        look_up = lookup(symbol)
+        if not look_up:
+            return apology("Stock does not exist", 403)
+
+        # Ensure number of share is positive
+        shares = request.form.get("shares")
+        if not shares:
+            return apology("Enter amount of shares")
+        
+        if not int(shares) >= 1:
+            return apology("Must provide positive number of shares", 403)
+        
+        user_rows = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
+        user_cash = user_rows[0]["cash"]
+        current_stock_price = look_up["price"]
+
+        
+        # Ensure user has enough cash to buy stock(s)
+        if current_stock_price > user_cash:
+            return apology("Not enough funds", 403)
+
+        else:
+            # update users (cash)
+            n = db.execute("UPDATE users SET cash = ? WHERE id = ?", user_cash - current_stock_price, session["user_id"])
+        
+            # update stocks table
+            stocks_rows = db.execute("SELECT * FROM stocks where symbol = ?", symbol)
+            if len(stocks_rows) == 0:
+                stock_id = db.execute("INSERT INTO stocks (stock_name, symbol) VALUES(?, ?)", look_up["name"], symbol)
+            else:
+                stock_id = stocks_rows[0]["id"]
+
+            try:
+                # update purchases table
+                db.execute("INSERT INTO purchases (user_id, stock_id, purchase_date, price) VALUES(?, ?, ?, ?)",
+                        session["user_id"], stock_id, date.today(), current_stock_price)
+                
+                return redirect("/")
+
+            except:
+                return apology("Internal Server Error at /buy")
+
+    # User reached route via GET
+    else:
+        return render_template("buy.html")
 
 
 @app.route("/history")
@@ -102,34 +155,56 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
-    """Get stock quote."""
-    return apology("TODO")
+    if request.method == "POST":
+        if request.form.get("symbol"):
+
+            # call API here and feed parameters to render_tempalate
+            data = lookup(request.form.get("symbol"))
+            print(data)
+            if data == None:
+                return apology("Stock does not exist", 403)
+
+            return render_template("quoted.html", data=data)
+
+        # no user input
+        else:
+            return redirect("/quote")
+        
+    # User reached route via GET
+    else:
+        return render_template("quote.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
 
-    # GET
-    if request.method == 'GET':
+    if request.method == "POST":
+        # Ensure username was submitted
+        username_entered = request.form.get("username")
+        if not username_entered:
+            return apology("must provide username", 403)
+
+        # Ensure username does not already exist in DB
+        if len(db.execute("SELECT * FROM users WHERE username = ?", username_entered)) != 0:
+            return apology("username already exists", 403)
+
+        # Ensure password was submitted
+        password_entered = request.form.get("password")
+        confirmation_entered = request.form.get("confirmation")
+        if not password_entered:
+            return apology("must provide password", 403)
+
+        # Ensure passwords match
+        if password_entered != confirmation_entered:
+            return apology("password does not match with confirmation", 403)
+
+        # Insert new user into users
+        if db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", username_entered, generate_password_hash(password_entered)):
+            return redirect("/")
+        
+    else:
         return render_template("register.html")
-    
-    # POST
-    # Ensure username was submitted and that username does not already exist
-    username_entered = request.form.get("username")
-    if not username_entered or len(db.execute("SELECT * FROM users WHERE username = ?", username_entered)) > 0:
-        return apology("must provide username", 403)
-    
-    # Ensure password was submitted
-    password_entered = request.form.get("password")
-    confirmation_entered = request.form.get("confirmation")
-    if not password_entered or password_entered != confirmation_entered:
-        return apology("must provide password", 403)
-
-    # Insert new user into users
-    id = db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", username_entered, generate_password_hash(password_entered))
-
-    return redirect("/")
 
 
 @app.route("/sell", methods=["GET", "POST"])

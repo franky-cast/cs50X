@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+    <h1>Quote for {{ data.name }} stock ({{ data.symbol }})</h1>
+    <h2> Price: ${{ data.price }} </h2>
+{% endblock %}
