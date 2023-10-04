@@ -37,7 +37,48 @@ def after_request(response):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    # which stocks the user owns, numbers of shares owned, 
+    # current price of each stock, total value of each holding
+    portfolio = []
+
+    # stocks the user owns
+    sql = "SELECT symbol FROM stocks WHERE id IN (SELECT stock_id FROM purchases WHERE user_id IN (SELECT id FROM users WHERE id = ?))"
+    stocks = db.execute(sql, session["user_id"])
+
+    for stock in stocks:
+        portfolio.append(stock)
+
+    stocks_total_value = 0
+
+    for stock in portfolio:
+        symbol = stock["symbol"]
+        print (symbol)
+
+        # how many shares the user owns of this stock
+        sql = "SELECT SUM(shares) FROM purchases WHERE stock_id IN (SELECT id FROM stocks WHERE symbol = ?) AND user_id = ?"
+        shares = db.execute(sql, symbol, session["user_id"])[0]['SUM(shares)']
+
+        # current price of stock
+        price = lookup(symbol)["price"]
+        total_holding = int(shares) * price
+
+        # append all values to portfolio dictionary
+        updated_stock = {
+            "symbol": symbol,
+            "shares": shares,
+            "price": price,
+            "total_value_holding": total_holding,
+        }
+
+        portfolio[portfolio.index(stock)] = updated_stock
+
+        stocks_total_value += total_holding
+    
+    portfolio.append(stocks_total_value + db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"])
+
+    print (portfolio)
+
+    return render_template("index.html", portfolio=portfolio)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -60,33 +101,35 @@ def buy():
         if not shares:
             return apology("Enter amount of shares")
         
-        if not int(shares) >= 1:
+        shares = int(shares)
+        
+        if not shares >= 1:
             return apology("Must provide positive number of shares", 403)
         
         user_rows = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
         user_cash = user_rows[0]["cash"]
         current_stock_price = look_up["price"]
-
         
         # Ensure user has enough cash to buy stock(s)
-        if current_stock_price > user_cash:
+        if (current_stock_price * shares) > user_cash:
             return apology("Not enough funds", 403)
 
         else:
             # update users (cash)
-            n = db.execute("UPDATE users SET cash = ? WHERE id = ?", user_cash - current_stock_price, session["user_id"])
+            n = db.execute("UPDATE users SET cash = ? WHERE id = ?", user_cash - (current_stock_price * shares), session["user_id"])
         
             # update stocks table
             stocks_rows = db.execute("SELECT * FROM stocks where symbol = ?", symbol)
             if len(stocks_rows) == 0:
                 stock_id = db.execute("INSERT INTO stocks (stock_name, symbol) VALUES(?, ?)", look_up["name"], symbol)
+                
             else:
                 stock_id = stocks_rows[0]["id"]
 
             try:
                 # update purchases table
-                db.execute("INSERT INTO purchases (user_id, stock_id, purchase_date, price) VALUES(?, ?, ?, ?)",
-                        session["user_id"], stock_id, date.today(), current_stock_price)
+                db.execute("INSERT INTO purchases (user_id, stock_id, purchase_date, price, shares) VALUES(?, ?, ?, ?, ?)",
+                        session["user_id"], stock_id, date.today(), current_stock_price, shares)
                 
                 return redirect("/")
 
@@ -211,6 +254,7 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
+    
     return apology("TODO")
 
 

@@ -21,3 +21,32 @@ nav .navbar-brand .green
 {
     color: #2e944b;
 }
+
+.fctable {
+    margin: 0 auto;
+    padding-top: 2rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.fctable, table {
+    width: 95%;
+}
+
+#grand_total {
+    width: 50%;
+}
+
+@media (min-width: 900px) {
+    .fctable, table {
+        width: 50%;
+    }
+
+    #grand_total {
+        width: 30%;
+    }
+}

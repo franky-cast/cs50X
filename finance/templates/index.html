@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <h1>Portfolio</h1>
+    <div class="fctable">
+        <table class="table table-striped table-hover">
+            <tr class="thead-dark">
+                <th scope="col">Stock</th>
+                <th scope="col">Shares</th>
+                <th scope="col">Current Price</th>
+                <th scope="col">Total Value Holding</th>
+            </tr>
+            {% for stock in portfolio %}
+                <tr>
+                    <td>{{ stock.symbol }}</td>
+                    <td>{{ stock.shares }}</td>
+                    <td>{{ stock.price }}</td>
+                    <td>{{ stock.total_value_holding }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table class="table table-striped table-hover" id="grand_total">
+            <tr class="thead-dark">
+                <th scope="col">Grand Total</th>
+            </tr>
+            <tr>
+                <td>{{ portfolio[1] }}</td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}
